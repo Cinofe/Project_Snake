@@ -1,5 +1,6 @@
 import pygame
 from datetime import datetime
+from datetime import timedelta
 
 
 #pygame 초기화
@@ -29,15 +30,24 @@ last_moved_time = datetime.now()
 
 positions = [(0,2),(0,1),(0,0)]
 i = 1
+x, y = 0, 0
 
 while not done:
     for event in pygame.event.get():# User did something
         if event.type == pygame.QUIT:# If user clicked close
             done=True # Flag that we are done so we exit this loop
-    block = pygame.Rect((2,2),(20,20))
-    pygame.draw.rect(screen,WHITE,block)
-    block = pygame.Rect((24,2),(20,20))
-    pygame.draw.rect(screen,WHITE,block)
-    block = pygame.Rect((46,2),(20,20))
-    pygame.draw.rect(screen,WHITE,block)
+    if timedelta(seconds=0.1) <= datetime.now() - last_moved_time:
+        block = pygame.Rect((x,y),(20,20))
+        pygame.draw.rect(screen,WHITE,block)
+        last_moved_time = datetime.now()
+        x += 22
+
     pygame.display.flip()
+
+
+
+'''
+if timedelta(seconds=0.1) <= datetime.now() - last_moved_time:
+            snake.move()
+            last_moved_time = datetime.now()
+'''
