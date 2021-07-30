@@ -31,7 +31,7 @@ def draw_block(screen, color, position):
 class Snake:
     def __init__(self):
         self.positions = [(0,2),(0,1),(0,0)]  # 뱀의 위치
-        self.direction = 'down'
+        self.direction = ''
  
     def draw(self):
         for position in self.positions: 
@@ -39,6 +39,7 @@ class Snake:
  
     def move(self):
         head_position = self.positions[0]
+        print(head_position)
         y, x = head_position
         if self.direction == 'up':
             self.positions = [(y - 1, x)] + self.positions[:-1]
@@ -59,7 +60,7 @@ class Snake:
         elif self.direction == 'left':
             self.positions.append((y, x - 1))
         elif self.direction == 'right':
-            self.positions.append((y, x + 1))    
+            self.positions.append((y, x + 1))
  
  
 class Apple:
@@ -116,7 +117,6 @@ def runGame():
         #벽 충돌 종료
         if snakeHead[1] < -1 or snakeHead[1] > 29 or snakeHead[0] < -1 or snakeHead[0] > 29:
             done = True
-        print(f"x : {snakeHead[1]}, y : {snakeHead[0]}")
         
  
         snake.draw()
