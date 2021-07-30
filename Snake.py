@@ -7,7 +7,7 @@ from datetime import timedelta
 pygame.init()
 
 #화면 크기
-size = [800,800]
+size = [850,664]
 
 #배경색
 BLACK = (0,0,0)
@@ -25,29 +25,37 @@ done = False
 #시간 관련 변수
 clock = pygame.time.Clock()
 last_moved_time = datetime.now()
+#테두리
+pygame.draw.rect(screen,WHITE,[0,2,660,662],2)
 
-#블럭 생성 함수
+class Game_System:
+     
+    def draw_block(self, screen, color, position):
+        block = pygame.Rect((position[0], position[1]), (20, 20))
+        pygame.draw.rect(screen, color, block)
 
-positions = [(0,2),(0,1),(0,0)]
-i = 1
-x, y = 0, 0
+
+class Snake(Game_System):
+    
+    def __init__(self):
+        self.positions = [(4,6),(26,6)]
+        self.direction = ''
+
+    def draw(self):
+        for position in self.positions:
+            super().draw_block(screen, WHITE, position)
+
 
 while not done:
+
+    snake = Snake()
     for event in pygame.event.get():# User did something
+        print(event)
         if event.type == pygame.QUIT:# If user clicked close
             done=True # Flag that we are done so we exit this loop
+    
     if timedelta(seconds=0.1) <= datetime.now() - last_moved_time:
-        block = pygame.Rect((x,y),(20,20))
-        pygame.draw.rect(screen,WHITE,block)
         last_moved_time = datetime.now()
-        x += 22
 
+    snake.draw()
     pygame.display.flip()
-
-
-
-'''
-if timedelta(seconds=0.1) <= datetime.now() - last_moved_time:
-            snake.move()
-            last_moved_time = datetime.now()
-'''
