@@ -200,7 +200,7 @@ while not done:
                     snake.direction = KEY_DIRECTION[event.key]
         #유전 알고리즘 사용 
     
-    if timedelta(seconds=1) <= datetime.now() - last_moved_time:
+    if timedelta(seconds=0.075) <= datetime.now() - last_moved_time:
         snake.move()
         snake.apple_Distance(apple.position)
         snake.wall_Distance()
