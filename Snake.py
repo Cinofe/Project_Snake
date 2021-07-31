@@ -3,7 +3,7 @@ import time
 import random
 from datetime import datetime
 from datetime import timedelta
-
+import math
 
 #pygame 초기화
 pygame.init()
@@ -21,16 +21,23 @@ RED = (255,0,0)
 #배경 설정
 screen = pygame.display.set_mode(size)
 
-#게임 종료 체크 변수
-done = False
-
 #시간 관련 변수
 clock = pygame.time.Clock()
 last_moved_time = datetime.now()
 
+#input layer
+input_layers = list()
+distan_to_apple = list()
+distan_to_body = list()
+distan_to_wall = list()
+
+#게임 종료 체크 변수
+done = False
+
 #점수
 score = 0
 score_font = pygame.font.SysFont('OpenSans', 30)
+
 
 KEY_DIRECTION = {
     pygame.K_UP: 'U',
@@ -51,6 +58,7 @@ class Snake(Game_System):
     def __init__(self):
         self.positions = [(4,6),(26,6),(48,6)]
         self.direction = "D"
+        self.distnaceApple = list()
 
     def draw(self):
         for position in self.positions:
@@ -77,6 +85,52 @@ class Snake(Game_System):
         tail_position2 = self.positions[-2]
         x, y = [tail_position1[i] - tail_position2[i] for i in range(len(tail_position1))]
         self.positions.append((tail_position1[0]+x,tail_position1[1]+y))
+
+    def apple_Distance(self, app_pos):        
+        for i in range(1,9):
+            self.Distance(app_pos,i)
+
+    def Distance(self, pos, mode):
+        x1, y1 = self.positions[0]
+        x2, y2 = pos       
+        #1(x-,y+)
+        #2(x-,y)
+        #3(x-,y-)
+        #4(x,y-)
+        #5(x+,y-)
+        #6(x+,y)
+        #7(x+,y+)
+        #8(x+,y)
+        while True:
+            if mode == 1:
+                x1 -= 22
+                y1 += 22
+            elif mode == 2:
+                x1 -= 22
+            elif mode == 3:
+                x1 -= 22
+                y1 -= 22
+            elif mode == 4:
+                y1 -= 22
+            elif mode == 5:
+                x1 += 22
+                y1 -= 22
+            elif mode == 6:
+                x1 += 22
+            elif mode == 7:
+                x1 += 22
+                y1 += 22
+            elif mode == 8:
+                x1 += 22
+            elif mode == 9:
+                break
+
+            if (x1 <= -1 or x1 >= 644) or (y1 <= -1 or y1 >= 646):
+                if (x1 == x2 and y1 == y2):
+                    self.distnaceApple.append(math.sqrt((x2-x1)**2+(y2-y1)**2))
+                else : self.distnaceApple.append(0)
+            else : break
+
 
 class Apple(Game_System):
     def __init__(self,position = ((random.randint(0,30)*22)+4,(random.randint(0,30)*22)+6)):
@@ -122,9 +176,10 @@ while not done:
                     snake.direction = KEY_DIRECTION[event.key]
         #유전 알고리즘 사용 
     
-    if timedelta(seconds=0.075) <= datetime.now() - last_moved_time:
+    if timedelta(seconds=1) <= datetime.now() - last_moved_time:
         snake.move()
         last_moved_time = datetime.now()
+        print(snake.distnaceApple)
 
     if snake_head == apple.position:
         score += 1
@@ -134,7 +189,10 @@ while not done:
             if not(new_position in snake.positions) and (new_position[0] >= 4 and new_position[0] < 664) and (new_position[1] >= 6 and new_position[1] < 666):
                 apple.position = new_position
                 break
-    
+    #input layer 값 찾기
+    #head와 사과 까지의 거리 
+    #snake.apple_Distance(apple.position)
+
 
     snake.draw()
     apple.draw()
