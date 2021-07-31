@@ -102,8 +102,8 @@ class Snake(Game_System):
 
     def body_Distance(self):
         self.distanceBody = []
-        for i in range(1,9):
-            i = 1
+        for mode in range(1,9):
+            self.Distance(mode=mode,body="body")
         return self.distanceBody
 
     def Distance(self, mode, apple = None, wall = None, body = None):
@@ -151,6 +151,13 @@ class Snake(Game_System):
             elif wall != None:
                 if (x1 <= -1 or x1 >= 644) or (y1 <= -1 or y1 >= 646):
                     self.distnaceWall.append(int(math.sqrt(pow(x1-head_position[0],2)+pow(y1-head_position[1],2))))
+                    break
+            elif body != None:
+                if ((x1,y1) in self.positions[1:]):
+                    self.distanceBody.append(int(math.sqrt(pow(x1-head_position[0],2)+pow(y1-head_position[1],2))))
+                    break
+                elif (x1 <= -1 or x1 >= 644) or (y1 <= -1 or y1 >= 646):
+                    self.distanceBody.append(0)
                     break
 
 class Apple(Game_System):
@@ -204,7 +211,8 @@ while not done:
         snake.move()
         snake.apple_Distance(apple.position)
         snake.wall_Distance()
-        print(snake.distnaceApple,snake.distnaceWall)
+        snake.body_Distance()
+        print(snake.distnaceApple,snake.distnaceWall,snake.distanceBody)
         last_moved_time = datetime.now()
 
     if snake_head == apple.position:
