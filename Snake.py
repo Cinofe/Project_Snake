@@ -106,8 +106,10 @@ while not done:
         break
 
     for event in pygame.event.get():
+        #게임 종료
         if event.type == pygame.QUIT:
             done=True
+        #키보드 조작시 사용
         if event.type == pygame.KEYDOWN:
             if event.key in KEY_DIRECTION:
                 if KEY_DIRECTION[event.key] == "U" and snake.direction != 'D':
@@ -118,6 +120,7 @@ while not done:
                     snake.direction = KEY_DIRECTION[event.key]
                 elif KEY_DIRECTION[event.key] == "R" and snake.direction != 'L':
                     snake.direction = KEY_DIRECTION[event.key]
+        #유전 알고리즘 사용 
     
     if timedelta(seconds=0.075) <= datetime.now() - last_moved_time:
         snake.move()
