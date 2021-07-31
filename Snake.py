@@ -28,6 +28,10 @@ done = False
 clock = pygame.time.Clock()
 last_moved_time = datetime.now()
 
+#점수
+score = 0
+score_font = pygame.font.SysFont('OpenSans', 30)
+
 KEY_DIRECTION = {
     pygame.K_UP: 'U',
     pygame.K_DOWN: 'D',
@@ -87,8 +91,19 @@ while not done:
     clock.tick(60)
     screen.fill(BLACK)
 
+    snake_head = snake.positions[0]
+
     #테두리
     pygame.draw.rect(screen,WHITE,[0,2,664,666],2)
+
+    #점수 표시
+    screen.blit(score_font.render("score : "+str(score),False,WHITE),(700,40))
+
+    if (snake_head[0] <= -1 or snake_head[0] >= 644) or (snake_head[1] <= -1 or snake_head[1] >= 646):
+        break
+
+    if (snake_head in snake.positions[1:]):
+        break
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -108,14 +123,15 @@ while not done:
         snake.move()
         last_moved_time = datetime.now()
 
-    if snake.positions[0] == apple.position:
+    if snake_head == apple.position:
+        score += 1
         snake.grow()
         while True:
             new_position = ((random.randint(0,30)*22)+4,(random.randint(0,30)*22)+6)
             if not(new_position in snake.positions) and (new_position[0] >= 4 and new_position[0] < 664) and (new_position[1] >= 6 and new_position[1] < 666):
                 apple.position = new_position
                 break
-            
+    
 
     snake.draw()
     apple.draw()
