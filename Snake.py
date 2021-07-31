@@ -58,7 +58,9 @@ class Snake(Game_System):
     def __init__(self):
         self.positions = [(4,6),(26,6),(48,6)]
         self.direction = "D"
-        self.distnaceApple = list()
+        self.distnaceApple = []
+        self.distnaceWall = []
+        self.distanceBody = []
 
     def draw(self):
         for position in self.positions:
@@ -86,13 +88,29 @@ class Snake(Game_System):
         x, y = [tail_position1[i] - tail_position2[i] for i in range(len(tail_position1))]
         self.positions.append((tail_position1[0]+x,tail_position1[1]+y))
 
-    def apple_Distance(self, app_pos):        
-        for i in range(1,9):
-            self.Distance(app_pos,i)
+    def apple_Distance(self, app_pos):
+        self.distnaceApple = []
+        for mode in range(1,9):
+            self.Distance(mode = mode,apple=app_pos)
+        return self.distnaceApple
+    
+    def wall_Distance(self):
+        self.distnaceWall = []
+        for mode in range(1,9):
+            self.Distance(mode=mode,wall="wall")
+        return self.distnaceWall
 
-    def Distance(self, pos, mode):
-        x1, y1 = self.positions[0]
-        x2, y2 = pos       
+    def body_Distance(self):
+        self.distanceBody = []
+        for i in range(1,9):
+            i = 1
+        return self.distanceBody
+
+    def Distance(self, mode, apple = None, wall = None, body = None):
+        head_position = self.positions[0]
+        x1, y1 = head_position
+        if apple != None:
+            x2, y2 = apple
         #1(x-,y+)
         #2(x-,y)
         #3(x-,y-)
@@ -100,8 +118,8 @@ class Snake(Game_System):
         #5(x+,y-)
         #6(x+,y)
         #7(x+,y+)
-        #8(x+,y)
-        while True:
+        #8(x,y+)
+        for _ in range(30):
             if mode == 1:
                 x1 -= 22
                 y1 += 22
@@ -121,16 +139,19 @@ class Snake(Game_System):
                 x1 += 22
                 y1 += 22
             elif mode == 8:
-                x1 += 22
-            elif mode == 9:
-                break
-
-            if (x1 <= -1 or x1 >= 644) or (y1 <= -1 or y1 >= 646):
+                y1 += 22
+            #apple list
+            if apple != None:
                 if (x1 == x2 and y1 == y2):
-                    self.distnaceApple.append(math.sqrt((x2-x1)**2+(y2-y1)**2))
-                else : self.distnaceApple.append(0)
-            else : break
-
+                    self.distnaceApple.append(int(math.sqrt(pow(x2-head_position[0],2)+pow(y2-head_position[1],2))))
+                    break
+                elif (x1 <= -1 or x1 >= 644) or (y1 <= -1 or y1 >= 646):
+                    self.distnaceApple.append(0)
+                    break
+            elif wall != None:
+                if (x1 <= -1 or x1 >= 644) or (y1 <= -1 or y1 >= 646):
+                    self.distnaceWall.append(int(math.sqrt(pow(x1-head_position[0],2)+pow(y1-head_position[1],2))))
+                    break
 
 class Apple(Game_System):
     def __init__(self,position = ((random.randint(0,30)*22)+4,(random.randint(0,30)*22)+6)):
@@ -159,6 +180,9 @@ while not done:
     if (snake_head in snake.positions[1:]):
         break
 
+    #input layer 값 찾기
+    #head와 사과 까지의 거리
+
     for event in pygame.event.get():
         #게임 종료
         if event.type == pygame.QUIT:
@@ -178,8 +202,10 @@ while not done:
     
     if timedelta(seconds=1) <= datetime.now() - last_moved_time:
         snake.move()
+        snake.apple_Distance(apple.position)
+        snake.wall_Distance()
+        print(snake.distnaceApple,snake.distnaceWall)
         last_moved_time = datetime.now()
-        print(snake.distnaceApple)
 
     if snake_head == apple.position:
         score += 1
@@ -189,9 +215,7 @@ while not done:
             if not(new_position in snake.positions) and (new_position[0] >= 4 and new_position[0] < 664) and (new_position[1] >= 6 and new_position[1] < 666):
                 apple.position = new_position
                 break
-    #input layer 값 찾기
-    #head와 사과 까지의 거리 
-    #snake.apple_Distance(apple.position)
+
 
 
     snake.draw()
