@@ -8,6 +8,9 @@ import math
 from pygame.constants import NOEVENT
 import NeuralNet as NL
 
+#재시작 횟수
+count = 0
+
 #게임 시스템
 class Game_System:
 
@@ -21,8 +24,6 @@ class Game_System:
         #폰트
         self.font = pygame.font.SysFont('OpenSans', 30)
         self.font_exit = pygame.font.SysFont('OpenSans',25)
-        #재시작 횟수
-        self.count = 0
         #무한 반복 방지 제약 생명
         self.life = 1000
         #시간 관련 변수
@@ -58,18 +59,14 @@ class Game_System:
         pygame.draw.rect(screen, color, block)
     
     def gameover(self,mode=None):
+        global count
         time.sleep(1)
-        self.count += 1
+        count += 1
         self.life = 1000
         self.score = 0
         self.done = False
 
         runGame(mode)  
-    
-    
-
-
-
 
 class Snake(Game_System):
     
@@ -130,14 +127,6 @@ class Snake(Game_System):
         x1, y1 = head_position
         if apple != None:
             x2, y2 = apple
-        #1(x-,y+)
-        #2(x-,y)
-        #3(x-,y-)
-        #4(x,y-)
-        #5(x+,y-)
-        #6(x+,y)
-        #7(x+,y+)
-        #8(x,y+)
         for _ in range(30):
             if mode == 1:
                 x1 -= 22
@@ -198,6 +187,7 @@ def runGame(mode = None):
     key = None
 
     brain = NL.neuralNetwork(24,12,12,4,0.5)
+    global count
 
     while not sys.done:
         sys.clock.tick(60)
@@ -211,7 +201,7 @@ def runGame(mode = None):
         #점수 표시
         sys.screen.blit(sys.font.render("score : "+str(sys.score),False,sys.WHITE),(700,40))
         sys.screen.blit(sys.font.render("life : "+str(sys.life),False,sys.WHITE),(700,80))
-        sys.screen.blit(sys.font.render("count : "+str(sys.count),False,sys.WHITE),(700,120))
+        sys.screen.blit(sys.font.render("count : "+str(count),False,sys.WHITE),(700,120))
         sys.screen.blit(sys.font_exit.render("Press ESC to EXIT",False,sys.WHITE),(685,600))
 
         if output != None:
@@ -240,6 +230,10 @@ def runGame(mode = None):
                         elif sys.KEY_DIRECTION[event.key] == "R" and snake.direction != 'L':
                             snake.direction = sys.KEY_DIRECTION[event.key]
             else :
+                if event.type == pygame.KEYDOWN:
+                    if event.key in sys.KEY_DIRECTION:
+                        if sys.KEY_DIRECTION[event.key] == "Q":
+                            exit()
                 if key != None and snake.direction != sys.KEY_OUTPUT[key]:
                     if sys.KEY_OUTPUT[key] == "U" and snake.direction != "D":
                         snake.direction = sys.KEY_OUTPUT[key]
@@ -282,4 +276,4 @@ def runGame(mode = None):
 
 
 if __name__ == "__main__":
-    runGame(1)
+    runGame()
