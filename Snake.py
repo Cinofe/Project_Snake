@@ -5,6 +5,9 @@ from datetime import datetime
 from datetime import timedelta
 import math
 
+from pygame.constants import NOEVENT
+import NeuralNet as NL
+
 #pygame 초기화
 pygame.init()
 
@@ -38,12 +41,18 @@ done = False
 score = 0
 score_font = pygame.font.SysFont('OpenSans', 30)
 
-
 KEY_DIRECTION = {
     pygame.K_UP: 'U',
     pygame.K_DOWN: 'D',
     pygame.K_LEFT: 'L',
-    pygame.K_RIGHT: 'R',
+    pygame.K_RIGHT: 'R'
+}
+
+KEY_OUTPUT = {
+    0:"U",
+    1:"D",
+    2:"L",
+    3:"R"
 }
 
 class Game_System:
@@ -56,7 +65,7 @@ class Game_System:
 class Snake(Game_System):
     
     def __init__(self):
-        self.positions = [(4,6),(26,6),(48,6)]
+        self.positions = [(48,50),(70,50),(92,50)]
         self.direction = "D"
         self.distnaceApple = []
         self.distnaceWall = []
@@ -169,6 +178,10 @@ class Apple(Game_System):
 snake = Snake()
 apple = Apple()
 
+output = None
+key = None
+
+
 while not done:
     clock.tick(60)
     screen.fill(BLACK)
@@ -181,14 +194,18 @@ while not done:
     #점수 표시
     screen.blit(score_font.render("score : "+str(score),False,WHITE),(700,40))
 
-    if (snake_head[0] <= -1 or snake_head[0] >= 644) or (snake_head[1] <= -1 or snake_head[1] >= 646):
-        break
+    #input layer 값 찾기
+    #head와 사과 까지의 거리
+
+    brain = NL.neuralNetwork(24,12,4,0.5)
+
+    
+    if output != None:
+        print(max(output))
+        key = output.index(max(output))
 
     if (snake_head in snake.positions[1:]):
         break
-
-    #input layer 값 찾기
-    #head와 사과 까지의 거리
 
     for event in pygame.event.get():
         #게임 종료
@@ -205,26 +222,37 @@ while not done:
                     snake.direction = KEY_DIRECTION[event.key]
                 elif KEY_DIRECTION[event.key] == "R" and snake.direction != 'L':
                     snake.direction = KEY_DIRECTION[event.key]
-        #유전 알고리즘 사용 
+
+        if key != None:
+            print(key)
+            if KEY_OUTPUT[key] == "U" and snake.direction != "D":
+                snake.direction = KEY_OUTPUT[key]
+            elif KEY_OUTPUT[key] == "D" and snake.direction != "U":
+                snake.direction = KEY_OUTPUT[key]
+            elif KEY_OUTPUT[key] == "L" and snake.direction != "R":
+                snake.direction = KEY_OUTPUT[key]
+            elif KEY_OUTPUT[key] == "R" and snake.direction != "L":
+                snake.direction = KEY_OUTPUT[key]
     
     if timedelta(seconds=0.075) <= datetime.now() - last_moved_time:
         snake.move()
         snake.apple_Distance(apple.position)
         snake.wall_Distance()
         snake.body_Distance()
-        print(snake.distnaceApple,snake.distnaceWall,snake.distanceBody)
+        if len(snake.distnaceApple+snake.distnaceWall+snake.distanceBody) == 24:
+            output = list(brain.query(snake.distnaceApple+snake.distnaceWall+snake.distanceBody))
         last_moved_time = datetime.now()
 
     if snake_head == apple.position:
-        score += 1
+        score += 1  
         snake.grow()
         while True:
             new_position = ((random.randint(0,30)*22)+4,(random.randint(0,30)*22)+6)
             if not(new_position in snake.positions) and (new_position[0] >= 4 and new_position[0] < 664) and (new_position[1] >= 6 and new_position[1] < 666):
                 apple.position = new_position
                 break
-
-
+    if (snake_head[0] <= -1 or snake_head[0] >= 644) or (snake_head[1] <= -1 or snake_head[1] >= 646):
+        break
 
     snake.draw()
     apple.draw()
