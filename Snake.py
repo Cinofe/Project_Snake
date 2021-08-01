@@ -4,12 +4,19 @@ import random
 from datetime import datetime
 from datetime import timedelta
 import math
-
+import numpy
 from pygame.constants import NOEVENT
 import NeuralNet as NL
 
+pygame.init()
+pygame.display.set_caption("PROJECT : AI_SNAKE")
+
 #재시작 횟수
 count = 0
+#점수
+score = 0
+best_score = 0
+best_score_weight = list()
 
 #게임 시스템
 class Game_System:
@@ -17,10 +24,6 @@ class Game_System:
     def __init__(self):
         #게임 종료 체크 변수
         self.done = False
-        #점수
-        self.score = 0
-        self.best_score = 0
-        self.best_score_weight = list()
         #폰트
         self.font = pygame.font.SysFont('OpenSans', 30)
         self.font_exit = pygame.font.SysFont('OpenSans',25)
@@ -58,12 +61,18 @@ class Game_System:
         block = pygame.Rect((position[0], position[1]), (20, 20))
         pygame.draw.rect(screen, color, block)
     
-    def gameover(self,mode=None):
+    def gameover(self,wih,whh,who,mode=None):
         global count
-        time.sleep(1)
+        global score
+        global best_score
+        global best_score_weight
+        print(score,best_score)
+        if score > best_score:
+            best_score = score
+            best_score_weight = [wih,whh,who]
+        #time.sleep(0.5)
         count += 1
-        self.life = 1000
-        self.score = 0
+        score = 0
         self.done = False
 
         runGame(mode)  
@@ -169,16 +178,21 @@ class Snake(Game_System):
                     break
 
 class Apple(Game_System):
-    def __init__(self,position = ((random.randint(0,30)*22)+4,(random.randint(0,30)*22)+6)):
+    def __init__(self):
         super().__init__()
-        self.position = position
+        self.position = ((random.randint(0,29)*22)+4,(random.randint(0,29)*22)+6)
+
     def draw(self):
         self.draw_block(self.screen,self.RED,self.position)
+    
+    def placement(self,positions):
+        while True:
+            new_position = ((random.randint(0,29)*22)+4,(random.randint(0,29)*22)+6)
+            if not(new_position in positions) and (new_position[0] >= 4 and new_position[0] < 664) and (new_position[1] >= 6 and new_position[1] < 666):
+                self.position = new_position
+                break
 
 def runGame(mode = None):
-    
-    pygame.init()
-
     sys = Game_System()
     snake = Snake()
     apple = Apple()
@@ -188,6 +202,9 @@ def runGame(mode = None):
 
     brain = NL.neuralNetwork(24,12,12,4,0.5)
     global count
+    global score
+    global best_score
+    global best_score_weight
 
     while not sys.done:
         sys.clock.tick(60)
@@ -199,7 +216,7 @@ def runGame(mode = None):
         pygame.draw.rect(sys.screen,sys.WHITE,[0,2,664,666],2)
 
         #점수 표시
-        sys.screen.blit(sys.font.render("score : "+str(sys.score),False,sys.WHITE),(700,40))
+        sys.screen.blit(sys.font.render("score : "+str(score),False,sys.WHITE),(700,40))
         sys.screen.blit(sys.font.render("life : "+str(sys.life),False,sys.WHITE),(700,80))
         sys.screen.blit(sys.font.render("count : "+str(count),False,sys.WHITE),(700,120))
         sys.screen.blit(sys.font_exit.render("Press ESC to EXIT",False,sys.WHITE),(685,600))
@@ -208,7 +225,7 @@ def runGame(mode = None):
             key = output.index(max(output))
 
         if (snake_head in snake.positions[1:]):
-            sys.gameover(mode)
+            sys.gameover(numpy.ravel(brain.wih), numpy.ravel(brain.whh), numpy.ravel(brain.who), mode)
             break
 
         for event in pygame.event.get():
@@ -220,6 +237,7 @@ def runGame(mode = None):
                 if event.type == pygame.KEYDOWN:
                     if event.key in sys.KEY_DIRECTION:
                         if sys.KEY_DIRECTION[event.key] == "Q":
+                            print(f'learn count : {count}\nbest score : {best_score}\nbest weights : {best_score_weight}')
                             exit()
                         if sys.KEY_DIRECTION[event.key] == "U" and snake.direction != 'D':
                             snake.direction = sys.KEY_DIRECTION[event.key]
@@ -233,6 +251,7 @@ def runGame(mode = None):
                 if event.type == pygame.KEYDOWN:
                     if event.key in sys.KEY_DIRECTION:
                         if sys.KEY_DIRECTION[event.key] == "Q":
+                            print(f'learn count : {count}\nbest score : {best_score}\nbest weights : {best_score_weight}')
                             exit()
                 if key != None and snake.direction != sys.KEY_OUTPUT[key]:
                     if sys.KEY_OUTPUT[key] == "U" and snake.direction != "D":
@@ -254,15 +273,12 @@ def runGame(mode = None):
             sys.last_moved_time = datetime.now()
 
         if snake_head == apple.position:
-            sys.score += 1  
+            score += 1  
             snake.grow()
-            while True:
-                new_position = ((random.randint(0,30)*22)+4,(random.randint(0,30)*22)+6)
-                if not(new_position in snake.positions) and (new_position[0] >= 4 and new_position[0] < 664) and (new_position[1] >= 6 and new_position[1] < 666):
-                    apple.position = new_position
-                    break
+            apple.placement(snake.positions)
+
         if (snake_head[0] <= -1 or snake_head[0] >= 644) or (snake_head[1] <= -1 or snake_head[1] >= 646):
-            sys.gameover(mode)
+            sys.gameover(numpy.ravel(brain.wih), numpy.ravel(brain.whh), numpy.ravel(brain.who), mode)
             break
 
         snake.draw()
@@ -270,7 +286,7 @@ def runGame(mode = None):
         pygame.display.flip()
 
         if sys.life <= 0:
-            sys.gameover(mode)
+            sys.gameover(numpy.ravel(brain.wih), numpy.ravel(brain.whh), numpy.ravel(brain.who), mode)
             break
         else : sys.life -= 1
 
