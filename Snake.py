@@ -66,12 +66,12 @@ class Game_System:
         global score
         global best_score
         global best_score_weight
-        print(score,best_score)
-        if score > best_score:
-            best_score = score
-            best_score_weight = [wih,whh,who]
-        #time.sleep(0.5)
-        count += 1
+
+        if mode == None:
+            if score > best_score:
+                best_score = score
+                best_score_weight = [wih,whh,who]
+            count += 1
         score = 0
         self.done = False
 
@@ -219,6 +219,10 @@ def runGame(mode = None):
         sys.screen.blit(sys.font.render("score : "+str(score),False,sys.WHITE),(700,40))
         sys.screen.blit(sys.font.render("life : "+str(sys.life),False,sys.WHITE),(700,80))
         sys.screen.blit(sys.font.render("count : "+str(count),False,sys.WHITE),(700,120))
+        if mode == None:
+            sys.screen.blit(sys.font.render("AIMode",False,sys.WHITE),(700,160))
+        else :
+            sys.screen.blit(sys.font.render("TesterMode",False,sys.WHITE),(700,160))
         sys.screen.blit(sys.font_exit.render("Press ESC to EXIT",False,sys.WHITE),(685,600))
 
         if output != None:
@@ -285,11 +289,12 @@ def runGame(mode = None):
         apple.draw()
         pygame.display.flip()
 
-        if sys.life <= 0:
-            sys.gameover(numpy.ravel(brain.wih), numpy.ravel(brain.whh), numpy.ravel(brain.who), mode)
-            break
-        else : sys.life -= 1
+        if mode == None:
+            if sys.life <= 0:
+                sys.gameover(numpy.ravel(brain.wih), numpy.ravel(brain.whh), numpy.ravel(brain.who), mode)
+                break
+            else : sys.life -= 1
 
 
 if __name__ == "__main__":
-    runGame()
+    runGame(1)
