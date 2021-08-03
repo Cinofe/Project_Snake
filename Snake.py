@@ -61,7 +61,7 @@ class Game_System:
         block = pygame.Rect((position[0], position[1]), (20, 20))
         pygame.draw.rect(screen, color, block)
     
-    def gameover(self,wih,whh,who,mode=None):
+    def gameover(self,wih,who,mode=None):
         global count
         global score
         global best_score
@@ -70,7 +70,7 @@ class Game_System:
         if mode == None:
             if score > best_score:
                 best_score = score
-                best_score_weight = [wih,whh,who]
+                best_score_weight = [wih,who]
             count += 1
         score = 0
         self.done = False
@@ -200,7 +200,7 @@ def runGame(mode = None):
     output = None
     key = None
 
-    brain = NL.neuralNetwork(24,12,12,4,0.5)
+    brain = NL.neuralNetwork(24,12,4,0.5)
     global count
     global score
     global best_score
@@ -229,7 +229,7 @@ def runGame(mode = None):
             key = output.index(max(output))
 
         if (snake_head in snake.positions[1:]):
-            sys.gameover(numpy.ravel(brain.wih), numpy.ravel(brain.whh), numpy.ravel(brain.who), mode)
+            sys.gameover(numpy.ravel(brain.wih), numpy.ravel(brain.who), mode)
             break
 
         for event in pygame.event.get():
@@ -282,7 +282,7 @@ def runGame(mode = None):
             apple.placement(snake.positions)
 
         if (snake_head[0] <= -1 or snake_head[0] >= 644) or (snake_head[1] <= -1 or snake_head[1] >= 646):
-            sys.gameover(numpy.ravel(brain.wih), numpy.ravel(brain.whh), numpy.ravel(brain.who), mode)
+            sys.gameover(numpy.ravel(brain.wih), numpy.ravel(brain.who), mode)
             break
 
         snake.draw()
@@ -291,10 +291,10 @@ def runGame(mode = None):
 
         if mode == None:
             if sys.life <= 0:
-                sys.gameover(numpy.ravel(brain.wih), numpy.ravel(brain.whh), numpy.ravel(brain.who), mode)
+                sys.gameover(numpy.ravel(brain.wih), numpy.ravel(brain.who), mode)
                 break
             else : sys.life -= 1
 
 
 if __name__ == "__main__":
-    runGame(1)
+    runGame()
