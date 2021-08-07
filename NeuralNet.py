@@ -55,4 +55,4 @@ class neuralNetwork:
         #최종 출력 계층에서 나가는 신호 계산 
         final_outputs = np.round(self.softmax_func(final_inputs),15)
 
-      return final_outputs
+        return final_outputs
