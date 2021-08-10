@@ -218,7 +218,7 @@ def runGame(mode = None):
     global best_score
     global best_score_weight
 
-    while life <= 0:
+    #while life <= 0:
     while not sys.done:
         sys.clock.tick(60)
         sys.screen.fill(sys.BLACK)
