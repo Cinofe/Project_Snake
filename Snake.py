@@ -5,7 +5,6 @@ from datetime import datetime
 from datetime import timedelta
 import math
 import numpy
-from pygame.constants import NOEVENT
 import NeuralNet as NL
 
 pygame.init()
@@ -17,6 +16,7 @@ count = 0
 score = 0
 best_score = 0
 best_score_weight = list()
+best_count = 0
 
 #게임 시스템
 class Game_System:
@@ -61,17 +61,29 @@ class Game_System:
         block = pygame.Rect((position[0], position[1]), (20, 20))
         pygame.draw.rect(screen, color, block)
     
-    def gameover(self,wih,who,mode=None):
+    def gameover(self,wih,who,mode=None,brain=None):
         global count
         global score
         global best_score
         global best_score_weight
+        global best_count
 
         if mode == None:
-            if score > best_score:
+            if score >= best_score and best_score != 0:
                 best_score = score
-                best_score_weight = [wih,who]
+                best_score_weight += [wih,who]
+                best_count += 1
+                print(best_count)
             count += 1
+        #if best_count >= 2 and brain != None:
+        #    if len(brain.weight) == 0:
+        #        brain.weight1 = best_score_weight[0]
+        #        brain.weight2 = best_score_weight[1]
+        #        best_score_weight = []
+        #    else :
+        #        brain.weight1 = brain.weight
+        #        brain.weight2 = best_score_weight[0]
+        #        best_score_weight = []
         score = 0
         self.done = False
 
@@ -229,7 +241,7 @@ def runGame(mode = None):
             key = output.index(max(output))
 
         if (snake_head in snake.positions[1:]):
-            sys.gameover(numpy.ravel(brain.wih), numpy.ravel(brain.who), mode)
+            sys.gameover(numpy.ravel(brain.wih), numpy.ravel(brain.who), mode, brain)
             break
 
         for event in pygame.event.get():
@@ -282,7 +294,7 @@ def runGame(mode = None):
             apple.placement(snake.positions)
 
         if (snake_head[0] <= -1 or snake_head[0] >= 644) or (snake_head[1] <= -1 or snake_head[1] >= 646):
-            sys.gameover(numpy.ravel(brain.wih), numpy.ravel(brain.who), mode)
+            sys.gameover(numpy.ravel(brain.wih), numpy.ravel(brain.who), mode, brain)
             break
 
         snake.draw()
@@ -291,7 +303,7 @@ def runGame(mode = None):
 
         if mode == None:
             if sys.life <= 0:
-                sys.gameover(numpy.ravel(brain.wih), numpy.ravel(brain.who), mode)
+                sys.gameover(numpy.ravel(brain.wih), numpy.ravel(brain.who), mode, brain)
                 break
             else : sys.life -= 1
 
