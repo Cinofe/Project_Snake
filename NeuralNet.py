@@ -12,9 +12,9 @@ class neuralNetwork:
         self.inodes = inputnodes
         self.hnode = hidden
         self.onodes = outputnodes
-        self.weight = []
-        self.weight1 = []
-        self.weight2 = []
+        self.weightin = []
+        self.weighthi = []
+        self.weightou = []
 
         #가중치 행렬 wih(input_hidden)와 who(hidden_output)
         if len(self.weight1) == 0 or len(self.weight2) == 0:
