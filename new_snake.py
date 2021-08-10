@@ -92,7 +92,7 @@ class Snake:
         x, y = [tail_position1[i] - tail_position2[i] for i in range(len(tail_position1))]
         #끝에서 첫번째 좌표와 합해서 새로운 몸통을 형성(꼬리의 진행방향과 같은곳에 생성됨)
         self.positions.append((tail_position1[0]+x,tail_position1[1]+y))
-
+    #음식과의 거리
     def food_Distance(self, app_pos):
         #기존 거리값 초기화
         self.distnaceFood = []
@@ -100,7 +100,7 @@ class Snake:
         for mode in range(1,9):
             self.Distance(mode = mode,food=app_pos)
         return self.distnaceFood
-    
+    #벽과의 거리
     def wall_Distance(self):
         #기존 거리값 초기화
         self.distnaceWall = []
@@ -108,7 +108,7 @@ class Snake:
         for mode in range(1,9):
             self.Distance(mode=mode,wall="wall")
         return self.distnaceWall
-
+    #몸통과의 거리
     def body_Distance(self):
         #기존 거리값 초기화
         self.distanceBody = []
@@ -116,7 +116,10 @@ class Snake:
         for mode in range(1,9):
             self.Distance(mode=mode,body="body")
         return self.distanceBody
-    #파라미터로 food가 들어오면 food과의 거리 측정, wall이 들어오면 wall과의 거리측정, body도 마찬가지
+    #거리측정 함수
+    # 파라미터로 food의 값이 들어오면 food과의 거리 측정,
+    # wall의 값이 들어오면 wall과의 거리측정,
+    # body도 마찬가지
     def Distance(self, mode, food = None, wall = None, body = None):
         #몸통의 머리 좌표 가져오기
         head_position = self.positions[0]
