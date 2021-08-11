@@ -9,7 +9,7 @@ class Environment:
         #색
         self.backGround = (0,0,0)
         self.WHITE = (255,255,255)
-        #   시스템
+        #----시스템----
         #종료 체크
         self.done = False
         #폰트
@@ -42,12 +42,19 @@ class Environment:
         self.screen.blit(self.font.render("life : "+str(self.life),False,self.WHITE),(700,80))
         self.screen.blit(self.font.render("count : "+str(self.count),False,self.WHITE),(700,120))
         self.screen.blit(self.font_exit.render("Press ESC to EXIT",False,self.WHITE),(685,600))
+
+        #뱀 그리기
+        snake.draw()
+        #먹이 그리기
+        food.draw()   
         #pygame 화면 업데이트
         pg.display.flip()
+
     #그리기
     def draw_block(self, position, color):
         block = pg.Rect((position[0], position[1]), (20, 20))
         pg.draw.rect(self.screen, color, block)
+        
 
 
 
@@ -64,9 +71,9 @@ class Snake:
         self.distnaceWall = []
         self.distanceBody = []
     #몸통 그리기
-    def draw(self, Env):
+    def draw(self):
         for position in self.positions:
-            Env.draw_block(position, self.snakeColor)
+            env.draw_block(position, self.snakeColor)
     #이동하기
     def move(self):
         head_positon = self.positions[0]
@@ -92,6 +99,9 @@ class Snake:
         x, y = [tail_position1[i] - tail_position2[i] for i in range(len(tail_position1))]
         #끝에서 첫번째 좌표와 합해서 새로운 몸통을 형성(꼬리의 진행방향과 같은곳에 생성됨)
         self.positions.append((tail_position1[0]+x,tail_position1[1]+y))
+        #음식을 먹었을 경우 남은 이동 수 증가와 점수 증가
+        env.life += 200
+        env.score += 1
     #음식과의 거리
     def food_Distance(self, app_pos):
         #기존 거리값 초기화
@@ -180,10 +190,19 @@ class Food:
         self.foodColor = (255,0,0)
         #매번 좌표는 랜덤으로 부여
         self.pos = ((random.randint(0,29)*22)+4,(random.randint(0,29)*22)+6)
+    
+    def draw(self):
+        env.draw_block(self.pos,self.foodColor)
 
 if __name__ == "__main__":
     env = Environment()
     snake = Snake()
+    food = Food()
 
-    while True:
+    while not env.done:
+        #화면 구성 업데이트
         env.screenUpdate()
+        for event in pg.event.get():
+            if event.type == pg.KEYDOWN:
+                if event.key == pg.K_ESCAPE:
+                    env.done = True
