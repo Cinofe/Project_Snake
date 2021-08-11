@@ -1,5 +1,6 @@
 import pygame as pg
 import numpy as np, time, math, random
+from scipy import special
 from datetime import datetime, timedelta
 
 
@@ -66,6 +67,16 @@ class Environment:
         elif key == pg.K_LEFT and snake.direction != 'R':
             snake.direction = 'L'
         elif key == pg.K_RIGHT and snake.direction != 'L':
+            snake.direction = 'R'
+    #brain 연산 출력 값 체크
+    def resultCheck(self, result):
+        if result == 0 and snake.direction != 'D':
+            snake.direction = 'U'
+        elif result == 1 and snake.direction != 'U':
+            snake.direction = 'D'
+        elif result == 2 and snake.direction != 'R':
+            snake.direction = 'L'
+        elif result == 3 and snake.direction != 'L':
             snake.direction = 'R'
     
     #종료 체크
@@ -220,16 +231,51 @@ class Food:
             self.pos = ((random.randint(0,29)*22)+4,(random.randint(0,29)*22)+6)
 
 class NeuralNet:
-    def __init__(self,inLayer,iSize,hSize,oSize):
+    def __init__(self,iSize,hSize,oSize):
         #레이어들
-        self.iLayer = inLayer
-        self.h1Layer = np.zeros(hSize)
-        self.h2Layer = np.zeros(hSize)
-        self.oLayer = np.zeros(oSize)
-        #가중치
-        self.Wi = np.random.uniform(-1,1,(hSize,iSize))
+        self.iLayer = []
+        self.h1Layer = []
+        self.h2Layer = []
+        self.oLayer = []
+        #가중치 최초 가중치는 -1~1 사이의 랜덤값
+        self.Wi = np.random.uniform(-1,1,(iSize,hSize))
         self.Wh = np.random.uniform(-1,1,(hSize,hSize))
-        self.Wo = np.random.uniform(-1,1,(oSize,hSize))
+        self.Wo = np.random.uniform(-1,1,(hSize,oSize))
+
+        #시그모이드 활성화 함수
+        self.activation_function = lambda x: special.expit(x)
+        #Relu 활성화 함수
+        self.Relu_func = lambda x : np.maximum(0,x)
+        #softmax 활성화 함수
+        self.softmax_func = lambda x: self.softmax(x)
+
+    def softmax(self, x):
+        c = np.max(x)
+        exp_a = np.exp(x-c)
+        sum_exp_a = np.sum(exp_a)
+        y = exp_a / sum_exp_a
+
+        return y
+
+    def query(self, inputLayer):
+        #들어온 입력
+        self.iLayer = np.array(inputLayer)
+        #입력에서 1차 히든 레이어 연산
+        self.h1Layer = np.dot(self.iLayer,self.Wi)
+        #1차 히든 레이어에서 2차 히든 레이어로 출력 하는 값
+        self.h1Layer = self.activation_function(self.h1Layer)
+        #2차 히든 레이어 연산
+        self.h2Layer = np.dot(self.h1Layer,self.Wh)
+        #2차 히든 레이어 에서 출력 레이어로 출력 하는 값
+        self.h2Layer = self.activation_function(self.h2Layer)
+        #출력 레이어 연산
+        self.oLayer = np.dot(self.h2Layer,self.Wo)
+        #마지막 출력 연산
+        self.oLayer = self.softmax_func(self.oLayer)
+
+        return list(self.oLayer)
+
+
 
 
 
@@ -237,32 +283,44 @@ if __name__ == "__main__":
     env = Environment()
     snake = Snake()
     food = Food()
+    brain = NeuralNet(24,14,4)
 
-    while not env.done:
-        #화면 구성 업데이트
-        env.screenUpdate()
-        #종료 체크
-        env.isDone()
-        #키보드 입력값 검사
-        for event in pg.event.get():
-            if event.type == pg.KEYDOWN:
-                #키보드 입력값 체크
-                env.keyCheck(event.key)
-        #second 는 한tick 즉 한 프레임당 시간을 말함 낮을 수록 뱀 이동속도 상승
-        #현재 시간과 마지막 이동시간을 비교해서 0.5초 이상 지났을 경우 실행
-        if timedelta(seconds=0.075) <= datetime.now() - env.last_moved_time:
-            #뱀 이동
-            snake.move()
-            #각 거리
-            snake.food_Distance(food.pos)
-            snake.wall_Distance()
-            snake.body_Distance()
-            #이동 할 때 마다 남은 이동 수 감소
-            env.life -= 1
-            #마지막 이동시각 저장
-            env.last_moved_time = datetime.now()
-        
-        #먹이 먹었는지 체크
-        if snake.positions[0] == food.pos:
-            snake.grow()
-            food.relocation()
+    #반복 횟수
+    epoch = 50
+    #모드 설정(0:ai, 1:user)
+    mode = 0
+
+    for _ in range(epoch):
+
+        while not env.done:
+            #화면 구성 업데이트
+            env.screenUpdate()
+            #종료 체크
+            env.isDone()
+            if mode == 1:
+                #키보드 입력값 검사
+                for event in pg.event.get():
+                    if event.type == pg.KEYDOWN:
+                        #키보드 입력값 체크
+                        env.keyCheck(event.key)
+
+            #second 는 한tick 즉 한 프레임당 시간을 말함 낮을 수록 뱀 이동속도 상승
+            #현재 시간과 마지막 이동시간을 비교해서 0.5초 이상 지났을 경우 실행
+            if timedelta(seconds=0.075) <= datetime.now() - env.last_moved_time:
+                if mode == 0:
+                    #brain 반환 값 검사
+                    if len(snake.food_Distance(food.pos)+snake.wall_Distance()+snake.body_Distance()) == 24:
+                        result = brain.query(snake.food_Distance(food.pos)+snake.wall_Distance()+snake.body_Distance())
+                        #이동 방향 설정
+                        env.resultCheck(result.index(max(result)))
+                #뱀 이동
+                snake.move()
+                #이동 할 때 마다 남은 이동 수 감소
+                env.life -= 1
+                #마지막 이동시각 저장
+                env.last_moved_time = datetime.now()
+            
+            #먹이 먹었는지 체크
+            if snake.positions[0] == food.pos:
+                snake.grow()
+                food.relocation()

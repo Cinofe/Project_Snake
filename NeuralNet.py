@@ -72,8 +72,9 @@ class neuralNetwork:
 
 
 if __name__ == "__main__":
-    a = np.array([1,2,3,4])
-    b = np.array([[1,5],[2,6],[3,7],[4,8]])
+    a = np.ones(24)
+    print(a)
+    b = np.arange(24*14).reshape(24,14)
+    print(b)
     c = np.dot(a,b)
     print(c)
-
