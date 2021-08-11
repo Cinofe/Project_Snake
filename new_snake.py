@@ -1,5 +1,5 @@
 import pygame as pg
-import numpy as np, time, math, random
+import numpy as np, time, math, random, copy
 from scipy import special
 from datetime import datetime, timedelta
 
@@ -28,7 +28,10 @@ class Environment:
         self.KEY_OUTPUT = {0:"U",1:"D",2:"L",3:"R"}
         #점수와 반복 횟수
         self.score = 0
+        self.bestScore = 0
         self.count = 0
+        #진화 횟수
+        self.generation = 0
 
     #화면 업데이트
     def screenUpdate(self):
@@ -39,9 +42,10 @@ class Environment:
         #테두리 만들기(하양,두께 2)
         pg.draw.rect(self.screen,self.WHITE,[0,2,664,666],2)
         #각 점수, 남은 이동수, 반복 횟수, 종료키 안내 문자 표시
-        self.screen.blit(self.font.render("score : "+str(self.score),False,self.WHITE),(700,40))
-        self.screen.blit(self.font.render("life : "+str(self.life),False,self.WHITE),(700,80))
-        self.screen.blit(self.font.render("count : "+str(self.count),False,self.WHITE),(700,120))
+        self.screen.blit(self.font.render("score : "+str(self.score),False,self.WHITE),(680,20))
+        self.screen.blit(self.font.render("life : "+str(self.life),False,self.WHITE),(680,60))
+        self.screen.blit(self.font.render("count : "+str(self.count),False,self.WHITE),(680,100))
+        self.screen.blit(self.font.render("Generation : "+str(self.generation),False,self.WHITE),(680,140))
         self.screen.blit(self.font_exit.render("Press ESC to EXIT",False,self.WHITE),(685,600))
 
         #뱀 그리기
@@ -57,17 +61,21 @@ class Environment:
         pg.draw.rect(self.screen, color, block)
 
     #입력키 체크
-    def keyCheck(self,key=None):
+    def keyCheck(self,key=None,mode=None):
         if key == pg.K_ESCAPE:
             self.done = True
-        if key == pg.K_UP and snake.direction != 'D':
-            snake.direction = 'U'
-        elif key == pg.K_DOWN and snake.direction != 'U':
-            snake.direction = 'D'
-        elif key == pg.K_LEFT and snake.direction != 'R':
-            snake.direction = 'L'
-        elif key == pg.K_RIGHT and snake.direction != 'L':
-            snake.direction = 'R'
+            return True
+        if mode == 1:
+            if key == pg.K_UP and snake.direction != 'D':
+                snake.direction = 'U'
+            elif key == pg.K_DOWN and snake.direction != 'U':
+                snake.direction = 'D'
+            elif key == pg.K_LEFT and snake.direction != 'R':
+                snake.direction = 'L'
+            elif key == pg.K_RIGHT and snake.direction != 'L':
+                snake.direction = 'R'
+        return False
+
     #brain 연산 출력 값 체크
     def resultCheck(self, result):
         if result == 0 and snake.direction != 'D':
@@ -88,6 +96,20 @@ class Environment:
              snake.positions[0][1] <= -1 or
              snake.positions[0][1] >= 646):
             self.done = True
+        if env.isBest():
+            dna.append(brain)
+
+    #신기록 체크
+    def isBest(self):
+        if self.score > self.bestScore:
+            self.bestScore = self.score
+            return True
+        else : return False
+    #초기화
+    def reset(self):
+        self.done = False
+        self.life = 400
+        self.score = 0
 
 class Snake:
     def __init__(self):
@@ -248,7 +270,7 @@ class NeuralNet:
         self.Relu_func = lambda x : np.maximum(0,x)
         #softmax 활성화 함수
         self.softmax_func = lambda x: self.softmax(x)
-
+    #softmax 활성화 함수
     def softmax(self, x):
         c = np.max(x)
         exp_a = np.exp(x-c)
@@ -256,7 +278,7 @@ class NeuralNet:
         y = exp_a / sum_exp_a
 
         return y
-
+    #다음 이동 연산하는 함수(생각하는 함수)
     def query(self, inputLayer):
         #들어온 입력
         self.iLayer = np.array(inputLayer)
@@ -275,34 +297,97 @@ class NeuralNet:
 
         return list(self.oLayer)
 
+class DNA:
+    def __init__(self):
+        self.clone1 = None
+        self.clone2 = None
+        self.count = 0
+
+    def append(self, dna):
+        if self.clone1 == None:
+            self.clone1 = copy.deepcopy(dna)
+            self.count += 1
+        elif self.clone2 == None:
+            self.clone2 = copy.deepcopy(dna)
+            self.count += 1
+        
+        if self.count == 2:
+            self.count = 0
+            self.crossOver()
+
+    def crossOver(self):
+        i = 0
+        j = 0
+        while i < len(brain.Wi):
+            while j < len(brain.Wi[0]):
+                for _ in range(2):
+                    brain.Wi[i][j] = self.clone1.Wi[i][j]
+                    j += 1
+                for _ in range(2):
+                    brain.Wi[i][j] = self.clone2.Wi[i][j]
+                    j += 1
+            i += 1
+        i = 0
+        j = 0
+        while i < len(brain.Wh):
+            while j < len(brain.Wh[0]):
+                for _ in range(2):
+                    brain.Wh[i][j] = self.clone1.Wh[i][j]
+                    j += 1
+                for _ in range(2):
+                    brain.Wh[i][j] = self.clone2.Wh[i][j]
+                    j += 1
+            i += 1
+        i = 0
+        j = 0
+        while i < len(brain.Wo):
+            while j < len(brain.Wo[0]):
+                for _ in range(2):
+                    brain.Wo[i][j] = self.clone1.Wo[i][j]
+                    j += 1
+                for _ in range(2):
+                    brain.Wo[i][j] = self.clone2.Wo[i][j]
+                    j += 1
+            i += 1
+        self.clone1 = None
+        self.clone2 = None
+        env.generation += 1
 
 if __name__ == "__main__":
     env = Environment()
-    snake = Snake()
-    food = Food()
     brain = NeuralNet(24,14,4)
-
+    dna = DNA()
     #반복 횟수
     epoch = 50
     #모드 설정(0:ai, 1:user)
     mode = 0
 
     while epoch > 0:
-        #env.done 값 어떻게 해야 다음 단계로 갈 수 있을까
-        
-        while not env.done:
+        env.reset()
+        snake = Snake()
+        food = Food()
+        #매 반복마다 진화가 없다면 brain을 새로 생성
+        if env.generation == 0:
+            brain = NeuralNet(24,14,4)
+
+        while True:
             #화면 구성 업데이트
             env.screenUpdate()
 
             #종료 체크
             env.isDone()
-
-            if mode == 1:
-                #키보드 입력값 검사
-                for event in pg.event.get():
-                    if event.type == pg.KEYDOWN:
-                        #키보드 입력값 체크
-                        env.keyCheck(event.key)
+            if env.done:
+                env.count += 1
+                break
+            
+            #키보드 입력값 검사
+            for event in pg.event.get():
+                if event.type == pg.KEYDOWN:
+                    #키보드 입력값 체크
+                    if env.keyCheck(event.key,mode=mode):
+                        epoch = 0
+                        break
+                    
 
             #second 는 한tick 즉 한 프레임당 시간을 말함 낮을 수록 뱀 이동속도 상승
             #현재 시간과 마지막 이동시간을 비교해서 0.5초 이상 지났을 경우 실행
