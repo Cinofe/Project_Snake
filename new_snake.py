@@ -54,6 +54,19 @@ class Environment:
     def draw_block(self, position, color):
         block = pg.Rect((position[0], position[1]), (20, 20))
         pg.draw.rect(self.screen, color, block)
+
+    #종료 체크
+    def keyCheck(self,key=None):
+        if key == pg.K_ESCAPE:
+            self.done = True
+        if key == pg.K_UP and snake.direction != 'D':
+            snake.direction = 'U'
+        elif key == pg.K_DOWN and snake.direction != 'U':
+            snake.direction = 'D'
+        elif key == pg.K_LEFT and snake.direction != 'R':
+            snake.direction = 'L'
+        elif key == pg.K_RIGHT and snake.direction != 'L':
+            snake.direction = 'R'
         
 
 
@@ -103,12 +116,12 @@ class Snake:
         env.life += 200
         env.score += 1
     #음식과의 거리
-    def food_Distance(self, app_pos):
+    def food_Distance(self, food_pos):
         #기존 거리값 초기화
         self.distnaceFood = []
         #몸통의 머리로 부터 8방향 체크
         for mode in range(1,9):
-            self.Distance(mode = mode,food=app_pos)
+            self.Distance(mode = mode,food=food_pos)
         return self.distnaceFood
     #벽과의 거리
     def wall_Distance(self):
@@ -202,7 +215,19 @@ if __name__ == "__main__":
     while not env.done:
         #화면 구성 업데이트
         env.screenUpdate()
+        #키보드 입력값 검사
         for event in pg.event.get():
             if event.type == pg.KEYDOWN:
-                if event.key == pg.K_ESCAPE:
-                    env.done = True
+                #키보드 입력값 체크
+                env.keyCheck(event.key)
+        #second 는 한tick 즉 한 프레임당 시간을 말함 낮을 수록 뱀 이동속도 상승
+        #현재 시간과 마지막 이동시간을 비교해서 0.5초 이상 지났을 경우 실행
+        if timedelta(seconds=0.5) <= datetime.now() - env.last_moved_time:
+            #뱀 이동
+            snake.move()
+            #각 거리
+            snake.food_Distance(food.pos)
+            snake.wall_Distance()
+            snake.body_Distance()
+            #마지막 이동시각 저장
+            env.last_moved_time = datetime.now()
