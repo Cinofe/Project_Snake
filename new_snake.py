@@ -276,9 +276,6 @@ class NeuralNet:
         return list(self.oLayer)
 
 
-
-
-
 if __name__ == "__main__":
     env = Environment()
     snake = Snake()
@@ -292,6 +289,7 @@ if __name__ == "__main__":
 
     while epoch > 0:
         #env.done 값 어떻게 해야 다음 단계로 갈 수 있을까
+        
         while not env.done:
             #화면 구성 업데이트
             env.screenUpdate()
