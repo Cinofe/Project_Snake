@@ -290,13 +290,15 @@ if __name__ == "__main__":
     #모드 설정(0:ai, 1:user)
     mode = 0
 
-    for _ in range(epoch):
-
+    while epoch > 0:
+        #env.done 값 어떻게 해야 다음 단계로 갈 수 있을까
         while not env.done:
             #화면 구성 업데이트
             env.screenUpdate()
+
             #종료 체크
             env.isDone()
+
             if mode == 1:
                 #키보드 입력값 검사
                 for event in pg.event.get():
@@ -324,3 +326,4 @@ if __name__ == "__main__":
             if snake.positions[0] == food.pos:
                 snake.grow()
                 food.relocation()
+        epoch -= 1
