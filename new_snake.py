@@ -1,5 +1,5 @@
 import pygame as pg
-import numpy, time, math, random
+import numpy as np, time, math, random
 from datetime import datetime, timedelta
 
 
@@ -16,7 +16,7 @@ class Environment:
         self.font = pg.font.SysFont('OpenSans', 30)
         self.font_exit = pg.font.SysFont('OpenSans',25)
         #남은 이동수
-        self.life = 1000
+        self.life = 400
         #마지막 이동 시간
         self.last_moved_time = datetime.now()
         #화면 표시 설정
@@ -55,7 +55,7 @@ class Environment:
         block = pg.Rect((position[0], position[1]), (20, 20))
         pg.draw.rect(self.screen, color, block)
 
-    #종료 체크
+    #입력키 체크
     def keyCheck(self,key=None):
         if key == pg.K_ESCAPE:
             self.done = True
@@ -67,9 +67,16 @@ class Environment:
             snake.direction = 'L'
         elif key == pg.K_RIGHT and snake.direction != 'L':
             snake.direction = 'R'
-        
-
-
+    
+    #종료 체크
+    def isDone(self):
+        if self.life <= 0:
+            self.done = True
+        if (snake.positions[0][0] <= -1 or
+             snake.positions[0][0] >= 644 or
+             snake.positions[0][1] <= -1 or
+             snake.positions[0][1] >= 646):
+            self.done = True
 
 class Snake:
     def __init__(self):
@@ -113,7 +120,7 @@ class Snake:
         #끝에서 첫번째 좌표와 합해서 새로운 몸통을 형성(꼬리의 진행방향과 같은곳에 생성됨)
         self.positions.append((tail_position1[0]+x,tail_position1[1]+y))
         #음식을 먹었을 경우 남은 이동 수 증가와 점수 증가
-        env.life += 200
+        env.life += 50
         env.score += 1
     #음식과의 거리
     def food_Distance(self, food_pos):
@@ -206,6 +213,25 @@ class Food:
     
     def draw(self):
         env.draw_block(self.pos,self.foodColor)
+    
+    def relocation(self):
+        self.pos = ((random.randint(0,29)*22)+4,(random.randint(0,29)*22)+6)
+        while self.pos in snake.positions:
+            self.pos = ((random.randint(0,29)*22)+4,(random.randint(0,29)*22)+6)
+
+class NeuralNet:
+    def __init__(self,inLayer,iSize,hSize,oSize):
+        #레이어들
+        self.iLayer = inLayer
+        self.h1Layer = np.zeros(hSize)
+        self.h2Layer = np.zeros(hSize)
+        self.oLayer = np.zeros(oSize)
+        #가중치
+        self.Wi = np.random.uniform(-1,1,(hSize,iSize))
+        self.Wh = np.random.uniform(-1,1,(hSize,hSize))
+        self.Wo = np.random.uniform(-1,1,(oSize,hSize))
+
+
 
 if __name__ == "__main__":
     env = Environment()
@@ -215,6 +241,8 @@ if __name__ == "__main__":
     while not env.done:
         #화면 구성 업데이트
         env.screenUpdate()
+        #종료 체크
+        env.isDone()
         #키보드 입력값 검사
         for event in pg.event.get():
             if event.type == pg.KEYDOWN:
@@ -222,12 +250,19 @@ if __name__ == "__main__":
                 env.keyCheck(event.key)
         #second 는 한tick 즉 한 프레임당 시간을 말함 낮을 수록 뱀 이동속도 상승
         #현재 시간과 마지막 이동시간을 비교해서 0.5초 이상 지났을 경우 실행
-        if timedelta(seconds=0.5) <= datetime.now() - env.last_moved_time:
+        if timedelta(seconds=0.075) <= datetime.now() - env.last_moved_time:
             #뱀 이동
             snake.move()
             #각 거리
             snake.food_Distance(food.pos)
             snake.wall_Distance()
             snake.body_Distance()
+            #이동 할 때 마다 남은 이동 수 감소
+            env.life -= 1
             #마지막 이동시각 저장
             env.last_moved_time = datetime.now()
+        
+        #먹이 먹었는지 체크
+        if snake.positions[0] == food.pos:
+            snake.grow()
+            food.relocation()

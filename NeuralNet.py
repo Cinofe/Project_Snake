@@ -68,3 +68,12 @@ class neuralNetwork:
         final_outputs = np.round(self.softmax_func(final_inputs),15)
 
         return final_outputs
+
+
+
+if __name__ == "__main__":
+    a = np.array([1,2,3,4])
+    b = np.array([[1,5],[2,6],[3,7],[4,8]])
+    c = np.dot(a,b)
+    print(c)
+
