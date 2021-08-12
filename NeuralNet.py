@@ -72,8 +72,16 @@ class neuralNetwork:
 
 
 if __name__ == "__main__":
-    b = np.arange(24*14).reshape(24,14)
-    c = b
+    a = np.random.randint(0,100,10)
+    b = np.cumsum(a)
+    c = [0]
+    ran = round(random.uniform(0,1),2)
+    for i in range(1,len(a)):
+        c.append(round((a[i]/b[-1])+c[i-1],1))
+    c.append(1)
+    print(a,b[-1],c,ran,sep='\n')
+    for i in range(1,len(c)):
+        if ran >= c[i-1] and ran <=c[i]:
+            print(a[i-1])
 
-    print(c)
-    
+#리스트에 각 확률의 누적합을 넣어 놓고 랜덤으로 뽑기 이론 틀린듯

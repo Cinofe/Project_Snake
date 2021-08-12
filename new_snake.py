@@ -20,6 +20,7 @@ class Environment:
         self.life = 400
         #마지막 이동 시간
         self.last_moved_time = datetime.now()
+        self.last_moved_time2 = datetime.now()
         #화면 표시 설정
         self.screen = pg.display.set_mode([850,668])
         #fps
@@ -43,9 +44,10 @@ class Environment:
         pg.draw.rect(self.screen,self.WHITE,[0,2,664,666],2)
         #각 점수, 남은 이동수, 반복 횟수, 종료키 안내 문자 표시
         self.screen.blit(self.font.render("score : "+str(self.score),False,self.WHITE),(680,20))
-        self.screen.blit(self.font.render("life : "+str(self.life),False,self.WHITE),(680,60))
-        self.screen.blit(self.font.render("count : "+str(self.count),False,self.WHITE),(680,100))
-        self.screen.blit(self.font.render("Generation : "+str(self.generation),False,self.WHITE),(680,140))
+        self.screen.blit(self.font.render('best score : '+str(self.bestScore),False,self.WHITE),(680,60))
+        self.screen.blit(self.font.render("life : "+str(self.life),False,self.WHITE),(680,100))
+        self.screen.blit(self.font.render("count : "+str(self.count),False,self.WHITE),(680,140))
+        self.screen.blit(self.font.render("Generation : "+str(self.generation),False,self.WHITE),(680,180))
         self.screen.blit(self.font_exit.render("Press ESC to EXIT",False,self.WHITE),(685,600))
 
         #뱀 그리기
@@ -96,13 +98,10 @@ class Environment:
              snake.positions[0][1] <= -1 or
              snake.positions[0][1] >= 646):
             self.done = True
-        if env.isBest():
-            dna.append(brain)
 
     #신기록 체크
     def isBest(self):
         if self.score > self.bestScore:
-            self.bestScore = self.score
             return True
         else : return False
     #초기화
@@ -110,6 +109,7 @@ class Environment:
         self.done = False
         self.life = 400
         self.score = 0
+        self.last_moved_time2 = datetime.now()
 
 class Snake:
     def __init__(self):
@@ -296,57 +296,70 @@ class NeuralNet:
         self.oLayer = self.softmax_func(self.oLayer)
 
         return list(self.oLayer)
-
+#
 class DNA:
     def __init__(self):
-        self.clone1 = None
-        self.clone2 = None
+        self.clones = []
+        self.scores = []
+        self.probs = [0]
+        self.parents = []
         self.count = 0
 
     def append(self, dna):
-        if self.clone1 == None:
-            self.clone1 = copy.deepcopy(dna)
-            self.count += 1
-        elif self.clone2 == None:
-            self.clone2 = copy.deepcopy(dna)
-            self.count += 1
-        
-        if self.count == 2:
-            self.count = 0
+        if len(self.clones) < 10:
+            self.clones.append(copy.deepcopy(brain))
+            self.scores.append(env.score)
+        elif len(self.clones) == 10:
+            sum = np.cumsum(self.scores)
+            ran = round(random.uniform(0,1),2)
+            for i in range(1,len(self.clones)):
+                self.probs.append(round((self.scores[i]/sum[-1])+self.probs[i-1],1))
+            self.probs.append(1)
+            for _ in range(2):
+                for i in range(len(self.probs)):
+                    if ran >= self.probs[i-1] and ran <= self.probs[i]:
+                        self.parents.append(self.clones[i])
+            
+            if random.randint(0,10000) <= 10:
+                self.mutate()
+            
             self.crossOver()
+
+    def mutate(self):
+        pass
 
     def crossOver(self):
         i = 0
         j = 0
         while i < len(brain.Wi):
             while j < len(brain.Wi[0]):
-                for _ in range(2):
-                    brain.Wi[i][j] = self.clone1.Wi[i][j]
+                if random.randint(0,100) >= 49:
+                    brain.Wi[i][j] = self.clones[0].Wi[i][j]
                     j += 1
-                for _ in range(2):
-                    brain.Wi[i][j] = self.clone2.Wi[i][j]
+                else:
+                    brain.Wi[i][j] = self.clones[1].Wi[i][j]
                     j += 1
             i += 1
         i = 0
         j = 0
         while i < len(brain.Wh):
             while j < len(brain.Wh[0]):
-                for _ in range(2):
-                    brain.Wh[i][j] = self.clone1.Wh[i][j]
+                if random.randint(0,100) >= 49:
+                    brain.Wh[i][j] = self.clones[0].Wh[i][j]
                     j += 1
-                for _ in range(2):
-                    brain.Wh[i][j] = self.clone2.Wh[i][j]
+                else:
+                    brain.Wh[i][j] = self.clones[1].Wh[i][j]
                     j += 1
             i += 1
         i = 0
         j = 0
         while i < len(brain.Wo):
             while j < len(brain.Wo[0]):
-                for _ in range(2):
-                    brain.Wo[i][j] = self.clone1.Wo[i][j]
+                if random.randint(0,100) >= 49:
+                    brain.Wo[i][j] = self.clones[0].Wo[i][j]
                     j += 1
-                for _ in range(2):
-                    brain.Wo[i][j] = self.clone2.Wo[i][j]
+                else:
+                    brain.Wo[i][j] = self.clones[1].Wo[i][j]
                     j += 1
             i += 1
         self.clone1 = None
@@ -358,7 +371,7 @@ if __name__ == "__main__":
     brain = NeuralNet(24,14,4)
     dna = DNA()
     #반복 횟수
-    epoch = 50
+    epoch = 500
     #모드 설정(0:ai, 1:user)
     mode = 0
 
@@ -387,12 +400,15 @@ if __name__ == "__main__":
                     if env.keyCheck(event.key,mode=mode):
                         epoch = 0
                         break
-                    
-
+            if timedelta(seconds=2) <= datetime.now() - env.last_moved_time2:
+                env.score += 1
+                env.last_moved_time2 = datetime.now()
             #second 는 한tick 즉 한 프레임당 시간을 말함 낮을 수록 뱀 이동속도 상승
             #현재 시간과 마지막 이동시간을 비교해서 0.5초 이상 지났을 경우 실행
             if timedelta(seconds=0.075) <= datetime.now() - env.last_moved_time:
                 if mode == 0:
+                    if env.isBest():
+                        dna.append(brain)
                     #brain 반환 값 검사
                     if len(snake.food_Distance(food.pos)+snake.wall_Distance()+snake.body_Distance()) == 24:
                         result = brain.query(snake.food_Distance(food.pos)+snake.wall_Distance()+snake.body_Distance())
