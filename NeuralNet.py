@@ -72,16 +72,29 @@ class neuralNetwork:
 
 
 if __name__ == "__main__":
-    a = np.random.randint(0,100,10)
-    b = np.cumsum(a)
+    a = np.random.randint(0,10,(24,14))
+    
     c = [0]
-    ran = round(random.uniform(0,1),2)
-    for i in range(1,len(a)):
-        c.append(round((a[i]/b[-1])+c[i-1],1))
-    c.append(1)
-    print(a,b[-1],c,ran,sep='\n')
-    for i in range(1,len(c)):
-        if ran >= c[i-1] and ran <=c[i]:
-            print(a[i-1])
+    
+    for i, j in enumerate(a):
+        b = np.cumsum(j)
+        ran = random.random()*b[-1]    
+        for k, p in enumerate(j):
+            if ran > a[i][k]:
+                ran -= a[i][k]
+            else:
+                print(k,a[i][p])
+                break
 
 #리스트에 각 확률의 누적합을 넣어 놓고 랜덤으로 뽑기 이론 틀린듯
+#참고
+'''
+itemList = ["귤", "상추", "레몬", "소다", "꽝"]
+possibility = [3, 1, 5, 2.5, 2]
+randomNumber = random.random() * sum(possibility)
+for i, j in enumerate(itemList):
+  if randomNumber > possibility[i]:
+    randomNumber -= possibility[i]
+  else:
+    print(j)
+    break'''

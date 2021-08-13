@@ -311,7 +311,7 @@ class DNA:
             self.scores.append(env.score)
         elif len(self.clones) == 10:
             sum = np.cumsum(self.scores)
-            ran = round(random.uniform(0,1),2)
+            ran = random.random() * sum[-1]
             for i in range(1,len(self.clones)):
                 self.probs.append(round((self.scores[i]/sum[-1])+self.probs[i-1],1))
             self.probs.append(1)
