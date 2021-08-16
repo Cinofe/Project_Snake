@@ -301,69 +301,40 @@ class DNA:
     def __init__(self):
         self.clones = []
         self.scores = []
-        self.probs = [0]
         self.parents = []
         self.count = 0
-
+    #부모 선발
     def append(self, dna):
+        #예비 부모가 10개체가 되면 선택
         if len(self.clones) < 10:
             self.clones.append(copy.deepcopy(brain))
             self.scores.append(env.score)
         elif len(self.clones) == 10:
-            sum = np.cumsum(self.scores)
-            ran = random.random() * sum[-1]
-            for i in range(1,len(self.clones)):
-                self.probs.append(round((self.scores[i]/sum[-1])+self.probs[i-1],1))
-            self.probs.append(1)
+            #룰렛 선택 방식으로 랜덤하게 선택
+            sum = sum(self.scores)
+            #두 개체를 선정해야함으로 2번 반복
             for _ in range(2):
-                for i in range(len(self.probs)):
-                    if ran >= self.probs[i-1] and ran <= self.probs[i]:
-                        self.parents.append(self.clones[i])
-            
+                ran = random.random() * sum
+                for i, j in enumerate(self.clones):
+                    if ran > self.scores[i]:
+                        ran -= self.scores[i]
+                    else:
+                        self.parents.append(self.clones[j])
+                        break
+
             if random.randint(0,10000) <= 10:
                 self.mutate()
             
             self.crossOver()
-
+    #돌연변이
     def mutate(self):
+        #선택된 부모중 2번째 개체에 돌연벼이를 일으킴1/1000 확률
+        self.parents[1].Wh = 
         pass
-
+    #합성
     def crossOver(self):
-        i = 0
-        j = 0
-        while i < len(brain.Wi):
-            while j < len(brain.Wi[0]):
-                if random.randint(0,100) >= 49:
-                    brain.Wi[i][j] = self.clones[0].Wi[i][j]
-                    j += 1
-                else:
-                    brain.Wi[i][j] = self.clones[1].Wi[i][j]
-                    j += 1
-            i += 1
-        i = 0
-        j = 0
-        while i < len(brain.Wh):
-            while j < len(brain.Wh[0]):
-                if random.randint(0,100) >= 49:
-                    brain.Wh[i][j] = self.clones[0].Wh[i][j]
-                    j += 1
-                else:
-                    brain.Wh[i][j] = self.clones[1].Wh[i][j]
-                    j += 1
-            i += 1
-        i = 0
-        j = 0
-        while i < len(brain.Wo):
-            while j < len(brain.Wo[0]):
-                if random.randint(0,100) >= 49:
-                    brain.Wo[i][j] = self.clones[0].Wo[i][j]
-                    j += 1
-                else:
-                    brain.Wo[i][j] = self.clones[1].Wo[i][j]
-                    j += 1
-            i += 1
-        self.clone1 = None
-        self.clone2 = None
+
+        pass
         env.generation += 1
 
 if __name__ == "__main__":
