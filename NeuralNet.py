@@ -73,20 +73,10 @@ class neuralNetwork:
 
 if __name__ == "__main__":
     a = np.random.randint(0,10,(24,14))
-    clones = ['1점','8점','1점','1점','7점','2점','1점','1점','1점','1점']
-    scores = [1,8,1,1,7,2,1,1,1,1]
-    sum = sum(scores)
-    print(sum)
+    b = []
+    b.append(a)
 
-    ran = random.random()*sum
-    print(ran)
-    
-    for i, j in enumerate(clones):
-        if ran > scores[i]:
-            ran -= scores[i]
-        else:
-            print(j)
-            break
+    print(b[0].shape[0])
         
 
 #리스트에 각 확률의 누적합을 넣어 놓고 랜덤으로 뽑기 이론 틀린듯

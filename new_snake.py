@@ -311,10 +311,10 @@ class DNA:
             self.scores.append(env.score)
         elif len(self.clones) == 10:
             #룰렛 선택 방식으로 랜덤하게 선택
-            sum = sum(self.scores)
+            s = sum(self.scores)
             #두 개체를 선정해야함으로 2번 반복
             for _ in range(2):
-                ran = random.random() * sum
+                ran = random.random() * s
                 for i, j in enumerate(self.clones):
                     if ran > self.scores[i]:
                         ran -= self.scores[i]
@@ -329,11 +329,11 @@ class DNA:
     #돌연변이
     def mutate(self):
         #선택된 부모중 2번째 개체에 돌연벼이를 일으킴1/1000 확률
-        self.parents[1].Wh = 
-        pass
+        self.parents[1].Wi = np.random.uniform(-1,1,(self.parents[1].Wi.shape[0],self.parents[1].Wi.shape[1]))
+        self.parents[1].Wh = np.random.uniform(-1,1,(self.parents[1].Wh.shape[0],self.parents[1].Wh.shape[1]))
+        self.parents[1].Wo = np.random.uniform(-1,1,(self.parents[1].Wo.shape[0],self.parents[1].Wo.shape[1]))
     #합성
     def crossOver(self):
-
         pass
         env.generation += 1
 
@@ -344,7 +344,7 @@ if __name__ == "__main__":
     #반복 횟수
     epoch = 500
     #모드 설정(0:ai, 1:user)
-    mode = 0
+    mode = 1
 
     while epoch > 0:
         env.reset()
