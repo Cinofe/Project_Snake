@@ -72,11 +72,11 @@ class neuralNetwork:
 
 
 if __name__ == "__main__":
-    a = np.random.randint(0,10,(24,14))
-    b = []
-    b.append(a)
+    wi = np.random.randint(0,10,(24,14))
+    wh = np.random.randint(0,10,(14,14))
+    wo = np.random.randint(0,10,(14,4))
 
-    print(b[0].shape[0])
+    print(wo)
         
 
 #리스트에 각 확률의 누적합을 넣어 놓고 랜덤으로 뽑기 이론 틀린듯

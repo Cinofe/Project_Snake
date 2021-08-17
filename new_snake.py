@@ -328,7 +328,7 @@ class DNA:
             self.crossOver()
     #돌연변이
     def mutate(self):
-        #선택된 부모중 2번째 개체에 돌연벼이를 일으킴1/1000 확률
+        #선택된 부모중 2번째 개체에 돌연변이를 일으킴 1/1000 확률
         self.parents[1].Wi = np.random.uniform(-1,1,(self.parents[1].Wi.shape[0],self.parents[1].Wi.shape[1]))
         self.parents[1].Wh = np.random.uniform(-1,1,(self.parents[1].Wh.shape[0],self.parents[1].Wh.shape[1]))
         self.parents[1].Wo = np.random.uniform(-1,1,(self.parents[1].Wo.shape[0],self.parents[1].Wo.shape[1]))
@@ -350,7 +350,7 @@ if __name__ == "__main__":
         env.reset()
         snake = Snake()
         food = Food()
-        #매 반복마다 진화가 없다면 brain을 새로 생성
+        # 매 반복마다 진화가 없다면 brain을 새로 생성
         if env.generation == 0:
             brain = NeuralNet(24,14,4)
 
