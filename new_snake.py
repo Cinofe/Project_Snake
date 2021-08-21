@@ -302,10 +302,15 @@ class DNA:
         self.clones = []
         self.scores = []
         self.parents = []
-        self.count = 0
+    
+    def reset(self):
+        self.clones = []
+        self.scores = []
+        self.parents = []
     #부모 선발
     def append(self, dna):
         #예비 부모가 10개체가 되면 선택
+        print(len(self.clones))
         if len(self.clones) < 10:
             self.clones.append(copy.deepcopy(brain))
             self.scores.append(env.score)
@@ -315,17 +320,18 @@ class DNA:
             #두 개체를 선정해야함으로 2번 반복
             for _ in range(2):
                 ran = random.random() * s
-                for i, j in enumerate(self.clones):
+                for i, _ in enumerate(self.clones):
                     if ran > self.scores[i]:
                         ran -= self.scores[i]
                     else:
-                        self.parents.append(self.clones[j])
+                        self.parents.append(self.clones[i])
                         break
 
             if random.randint(0,10000) <= 10:
                 self.mutate()
             
             self.crossOver()
+            self.reset()
     #돌연변이
     def mutate(self):
         #선택된 부모중 2번째 개체에 돌연변이를 일으킴 1/1000 확률
@@ -334,8 +340,34 @@ class DNA:
         self.parents[1].Wo = np.random.uniform(-1,1,(self.parents[1].Wo.shape[0],self.parents[1].Wo.shape[1]))
     #합성
     def crossOver(self):
-        pass
+        nwi = np.zeros((24,14))
+        nwh = np.zeros((14,14))
+        nwo = np.zeros((14,4))
+        for i in  range(len(nwi)):
+            for j in range(len(nwi[0])):
+                if j < len(nwi[0])/2:
+                    nwi[i][j] = self.parents[0].Wi[i][j]
+                else:
+                    nwi[i][j] = self.parents[1].Wi[i][j]
+        for i in range(len(nwh)):
+            for j in range(len(nwh[0])):
+                if j < len(nwh[0])/2:
+                    nwh[i][j] = self.parents[0].Wh[i][j]
+                else:
+                    nwh[i][j] = self.parents[1].Wh[i][j]
+        for i in range(len(nwo)):
+            for j in range(len(nwo[0])):
+                if j < len(nwo[0])/2:
+                    nwo[i][j] = self.parents[0].Wo[i][j]
+                else:
+                    nwo[i][j] = self.parents[1].Wo[i][j]
+
         env.generation += 1
+        print(f'generation : {env.generation}')
+
+        brain.Wi = nwi
+        brain.Wh = nwh
+        brain.Wo = nwo
 
 if __name__ == "__main__":
     env = Environment()
@@ -344,7 +376,7 @@ if __name__ == "__main__":
     #반복 횟수
     epoch = 500
     #모드 설정(0:ai, 1:user)
-    mode = 1
+    mode = 0
 
     while epoch > 0:
         env.reset()
@@ -353,7 +385,6 @@ if __name__ == "__main__":
         # 매 반복마다 진화가 없다면 brain을 새로 생성
         if env.generation == 0:
             brain = NeuralNet(24,14,4)
-
         while True:
             #화면 구성 업데이트
             env.screenUpdate()
@@ -371,15 +402,13 @@ if __name__ == "__main__":
                     if env.keyCheck(event.key,mode=mode):
                         epoch = 0
                         break
-            if timedelta(seconds=2) <= datetime.now() - env.last_moved_time2:
+            if timedelta(seconds=1.5) <= datetime.now() - env.last_moved_time2:
                 env.score += 1
                 env.last_moved_time2 = datetime.now()
             #second 는 한tick 즉 한 프레임당 시간을 말함 낮을 수록 뱀 이동속도 상승
-            #현재 시간과 마지막 이동시간을 비교해서 0.5초 이상 지났을 경우 실행
+            #현재 시간과 마지막 이동시간을 비교해서 0.075초 이상 지났을 경우 실행
             if timedelta(seconds=0.075) <= datetime.now() - env.last_moved_time:
                 if mode == 0:
-                    if env.isBest():
-                        dna.append(brain)
                     #brain 반환 값 검사
                     if len(snake.food_Distance(food.pos)+snake.wall_Distance()+snake.body_Distance()) == 24:
                         result = brain.query(snake.food_Distance(food.pos)+snake.wall_Distance()+snake.body_Distance())
@@ -396,4 +425,7 @@ if __name__ == "__main__":
             if snake.positions[0] == food.pos:
                 snake.grow()
                 food.relocation()
+        if mode == 0:
+            if env.isBest():
+                dna.append(brain)
         epoch -= 1

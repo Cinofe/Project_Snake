@@ -72,12 +72,30 @@ class neuralNetwork:
 
 
 if __name__ == "__main__":
-    wi = np.random.randint(0,10,(24,14))
-    wh = np.random.randint(0,10,(14,14))
-    wo = np.random.randint(0,10,(14,4))
+    wi1 = np.random.randint(0,10,(24,14))
+    wi2 = np.random.randint(0,10,(24,14))
+    wh1 = np.random.randint(0,10,(14,14))
+    wh2 = np.random.randint(0,10,(14,14))
+    wo1 = np.random.randint(0,10,(14,4))
+    wo2 = np.random.randint(0,10,(14,4))
 
-    print(wo)
-        
+    nwi = np.zeros((24,14))
+    for i in range(len(wi1)):
+        for j in range(len(wi1[0])):
+            if j < len(wi1[0])/2:
+                nwi[i][j] = wi1[i][j]
+            else:
+                nwi[i][j] = wi2[i][j]
+    nwh = np.zeros((14,14))
+    for i in range(len(wh1)):
+        for j in range(len(wh1[0])):
+            if j < len(wh1[0])/2:
+                nwh[i][j] = wh1[i][j]
+            else:
+                nwh[i][j] = wh2[i][j]
+    print(nwh)
+    wi1 = nwh
+    print(wi1)
 
 #리스트에 각 확률의 누적합을 넣어 놓고 랜덤으로 뽑기 이론 틀린듯
 #참고
@@ -89,5 +107,6 @@ for i, j in enumerate(itemList):
   if randomNumber > possibility[i]:
     randomNumber -= possibility[i]
   else:
-    print(j)
-    break'''
+    print(i,j)
+    break
+'''
