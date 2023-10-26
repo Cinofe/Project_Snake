@@ -1,47 +1,25 @@
 import numpy as np
-import scipy.special
-import random
+from scipy import special
 
-
-#neural network class definition
-class neuralNetwork:
-    
-    #initialize the neural network
-    def __init__(self, inputnodes, hidden, outputnodes, learningrate):
-        #set number of nodes in each input, hidden, output layer 
-        self.inodes = inputnodes
-        self.hnode = hidden
-        self.onodes = outputnodes
-        self.weightin = []
-        self.weighthi = []
-        self.weightou = []
-
-        #가중치 행렬 wih(input_hidden)와 who(hidden_output)
-        if len(self.weight1) == 0 or len(self.weight2) == 0:
-            self.wih = np.random.randn(self.hnode, self.inodes)
-            self.who = np.random.randn(self.onodes, self.hnode)
-        else :
-            np.reshape(self.weight1,1)
-            np.reshape(self.weight2,1)
-            for _ in range(len(self.weight1)):
-                if self.weight1 == self.weight2:
-                    self.weight.append(self.weight1)
-                else : 
-                    self.weight.append(np.random.randn(1)[0])
-            
-            self.wih = np.reshape(self.weight1,(self.hnode, self.inodes))
-            self.who = np.reshape(self.weight2,(self.onodes, self.hnode))
-
-        #learning rate
-        self.lr = learningrate
+class NeuralNet:
+    def __init__(self,iSize,hSize,oSize):
+        #레이어들
+        self.iLayer = []
+        self.h1Layer = []
+        self.h2Layer = []
+        self.oLayer = []
+        #가중치 최초 가중치는 -1~1 사이의 랜덤값
+        self.Wi = np.random.uniform(-1,1,(iSize,hSize))
+        self.Wh = np.random.uniform(-1,1,(hSize,hSize))
+        self.Wo = np.random.uniform(-1,1,(hSize,oSize))
 
         #시그모이드 활성화 함수
-        self.activation_function = lambda x: scipy.special.expit(x)
+        self.activation_function = lambda x: special.expit(x)
         #Relu 활성화 함수
         self.Relu_func = lambda x : np.maximum(0,x)
         #softmax 활성화 함수
         self.softmax_func = lambda x: self.softmax(x)
-
+    #softmax 활성화 함수
     def softmax(self, x):
         c = np.max(x)
         exp_a = np.exp(x-c)
@@ -49,45 +27,21 @@ class neuralNetwork:
         y = exp_a / sum_exp_a
 
         return y
+    #다음 이동 연산하는 함수(생각하는 함수)
+    def query(self, inputLayer):
+        #들어온 입력
+        self.iLayer = np.array(inputLayer)
+        #입력에서 1차 히든 레이어 연산
+        self.h1Layer = np.dot(self.iLayer,self.Wi)
+        #1차 히든 레이어에서 2차 히든 레이어로 출력 하는 값
+        self.h1Layer = self.activation_function(self.h1Layer)
+        #2차 히든 레이어 연산
+        self.h2Layer = np.dot(self.h1Layer,self.Wh)
+        #2차 히든 레이어 에서 출력 레이어로 출력 하는 값
+        self.h2Layer = self.activation_function(self.h2Layer)
+        #출력 레이어 연산
+        self.oLayer = np.dot(self.h2Layer,self.Wo)
+        #마지막 출력 연산
+        self.oLayer = self.softmax_func(self.oLayer)
 
-    #신경망 학습시키기
-    def CrossOver(self, w1,w2):
-        pass
-
-    #신경망에 질의하기
-    def query(self, inputs_list):
-        #입력 리스트를 2차원 행렬로 변환
-        inputs = np.array(inputs_list, ndmin=2).T
-        #1차 은닉 계층으로 들어오는 신호를 계산
-        hidden_inputs = np.dot(self.wih, inputs)
-        #1차 은닉 계층에서 나가는 신호를 계산
-        hidden_outputs = self.Relu_func(hidden_inputs)
-        #최종 출력 계층으로 들어오는 신호 계산 
-        final_inputs = np.dot(self.who, hidden_outputs)
-        #최종 출력 계층에서 나가는 신호 계산 
-        final_outputs = np.round(self.softmax_func(final_inputs),15)
-
-        return final_outputs
-
-
-
-if __name__ == "__main__":
-    wi = np.random.randint(0,10,(24,14))
-    wh = np.random.randint(0,10,(14,14))
-    wo = np.random.randint(0,10,(14,4))
-
-    print(wo)
-        
-
-#리스트에 각 확률의 누적합을 넣어 놓고 랜덤으로 뽑기 이론 틀린듯
-#참고
-'''
-itemList = ["귤", "상추", "레몬", "소다", "꽝"]
-possibility = [3, 1, 5, 2.5, 2]
-randomNumber = random.random() * sum(possibility)
-for i, j in enumerate(itemList):
-  if randomNumber > possibility[i]:
-    randomNumber -= possibility[i]
-  else:
-    print(j)
-    break'''
+        return list(self.oLayer)
