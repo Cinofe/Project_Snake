@@ -8,7 +8,6 @@ import pygame as pg, numpy as np
 if __name__ == "__main__":
     env = Env()
     brain = NeuralNet(24,14,4)
-    # dna = DNA()
     #반복 횟수
     epoch = 500
     #모드 설정(0:ai, 1:user)
