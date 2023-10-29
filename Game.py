@@ -1,7 +1,6 @@
 from datetime import datetime,timedelta
 from gameEnv import Env
 from snake import Snake
-from dna import DNA
 from neuralNet import NeuralNet
 from food import Food
 import pygame as pg, numpy as np
