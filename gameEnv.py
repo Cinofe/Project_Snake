@@ -30,6 +30,8 @@ class Env:
         self.count = 0
         #진화 횟수
         self.generation = 0
+        # Loss
+        self.Loss = 0
 
     #화면 업데이트
     def screenUpdate(self,snake, food, env):
@@ -44,7 +46,7 @@ class Env:
         self.screen.blit(self.font.render('best score : '+str(self.bestScore),False,self.WHITE),(680,60))
         self.screen.blit(self.font.render("life : "+str(self.life),False,self.WHITE),(680,100))
         self.screen.blit(self.font.render("count : "+str(self.count),False,self.WHITE),(680,140))
-        self.screen.blit(self.font.render("Generation : "+str(self.generation),False,self.WHITE),(680,180))
+        self.screen.blit(self.font.render("Loss : "+str(self.Loss),False,self.WHITE),(680,180))
         self.screen.blit(self.font_exit.render("Press ESC to EXIT",False,self.WHITE),(685,600))
 
         #뱀 그리기
