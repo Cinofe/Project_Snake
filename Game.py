@@ -8,6 +8,7 @@ import pygame as pg, numpy as np
 if __name__ == "__main__":
     env = Env()
     brain = NeuralNet(24,14,4)
+    # dna = DNA()
     #반복 횟수
     epoch = 500
     #모드 설정(0:ai, 1:user)
@@ -25,13 +26,16 @@ if __name__ == "__main__":
             #종료 체크
             env.isDone(snake)
             if env.done:
-                penalty = -500.0
-                wD = np.array(inputs[8:16]) + penalty
-                result = inputs[:8] + [*wD] + inputs[16:]
+                result[np.argmax(result)] -= 10
                 brain.train(inputs, result)
 
                 if env.score > env.bestScore:
+                    result += 3
+                    brain.train(inputs, result)
                     env.bestScore = env.score
+                elif env.score < env.bestScore:
+                    result -= 5
+                    brain.train(inputs, result)
                 env.count += 1
                 break
 
@@ -47,15 +51,12 @@ if __name__ == "__main__":
             #현재 시간과 마지막 이동시간을 비교해서 0.5초 이상 지났을 경우 실행
             if timedelta(seconds=0.02 * 0.25) <= datetime.now() - env.last_moved_time:
                 if mode == 0:
-                    # if env.isBest():
-                    #     dna.append(brain, env)
-                    #brain 반환 값 검사
                     if len(snake.food_Distance(food.pos)+snake.wall_Distance()+snake.body_Distance()) == 24:
                         # input Layer로 snake 머리 방향 기준 8 방향으로 음식까지와의 거리, 벽 까지와의 거리, 자기 자신 몸까지와의 거리 측정
                         inputs = snake.food_Distance(food.pos)+snake.wall_Distance()+snake.body_Distance()
                         result = brain.query(inputs)
                         #이동 방향 설정
-                        env.resultCheck(snake, np.argmax((result)))
+                        env.resultCheck(snake, np.argmax(result))
                 #뱀 이동
                 snake.move()
                 #이동 할 때 마다 남은 이동 수 감소
@@ -68,8 +69,7 @@ if __name__ == "__main__":
                 snake.grow(env)
                 food.relocation(snake)
                 # 보상
-                reward = 30.0
-                fD = np.array(inputs[:8]) + reward
-                result = [*fD] + inputs[8:]
+                result += 2
+                result[np.argmax(result)] += 5
                 brain.train(inputs, result)
         epoch -= 1
